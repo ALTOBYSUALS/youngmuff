@@ -1,30 +1,58 @@
 [
   {
-    "title": "#FREEMAIKY (Video Oficial)",
-    "audioUrl": "https://altovisual.sfo3.cdn.digitaloceanspaces.com/songs/freemaiky.mp3",
+    "title": "FREEMAIKY",
+    "audioUrl": "https://res.cloudinary.com/dt5pkdr0k/video/upload/v1739810727/Free_Master_Video_48x24_V3_t4f0eu.wav",
     "duration": "3:14",
-    "genre": "Hip-Hop",
+    "genre": "R&B",
     "thumbnail": "images/Recurso-5saint.png"
   },
   {
-    "title": "YOUNGMUFF - Flow de Barrio",
-    "audioUrl": "https://altovisual.sfo3.cdn.digitaloceanspaces.com/songs/flowdebarrio.mp3",
-    "duration": "2:45",
-    "genre": "Trap",
+    "title": "VIERNES",
+    "audioUrl": "https://res.cloudinary.com/dt5pkdr0k/video/upload/v1739810255/01_VIERNES_czpf4b.mp3",
+    "duration": "3:14",
+    "genre": "R&B",
     "thumbnail": "images/muff144.jpg"
   },
   {
-    "title": "Maikymoves - Sin Miedo (ft. Saint)",
-    "audioUrl": "https://altovisual.sfo3.cdn.digitaloceanspaces.com/songs/sinmiedo.mp3",
-    "duration": "3:30",
-    "genre": "Reggaeton",
+    "title": "FOU FOU",
+    "audioUrl": "https://res.cloudinary.com/dt5pkdr0k/video/upload/v1739810252/12-_FOU_FOU_brc7jo.mp3",
+    "duration": "3:14",
+    "genre": "R&B",
+    "thumbnail": "images/dd.jpg"
+  },
+  {
+    "title": "SIA",
+    "audioUrl": "https://res.cloudinary.com/dt5pkdr0k/video/upload/v1739810261/13._SIA_im90kd.wav",
+    "duration": "3:14",
+    "genre": "R&B",
     "thumbnail": "images/Grupo-3.png"
   },
   {
-    "title": "YOUNGMUFF - La Calle Sabe",
-    "audioUrl": "https://altovisual.sfo3.cdn.digitaloceanspaces.com/songs/lacallesabe.mp3",
-    "duration": "2:55",
-    "genre": "Hip-Hop",
+    "title": "SIRI",
+    "audioUrl": "https://res.cloudinary.com/dt5pkdr0k/video/upload/v1739810252/Machine_-_SIRI_Ft_Akapellah_Maiky_Moves_Jambene%CC%81_Angelo_Reeves_-_Prod_by_Carze%CC%81_Video_Oficial_l5ye1a.mp3",
+    "duration": "3:14",
+    "genre": "R&B",
+    "thumbnail": "images/Image.jpg"
+  },
+  {
+    "title": "MIENTRAS SALGO #1",
+    "audioUrl": "https://res.cloudinary.com/dt5pkdr0k/video/upload/v1739810258/Mientras_Salgo_1_tstiu1.mp3",
+    "duration": "3:14",
+    "genre": "R&B",
+    "thumbnail": "images/Ime.jpg"
+  },
+  {
+    "title": "MIENTRAS SALGO #2",
+    "audioUrl": "https://res.cloudinary.com/dt5pkdr0k/video/upload/v1739810252/Mientras_Salgo_2_kcv6b7.mp3",
+    "duration": "3:14",
+    "genre": "Urban",
     "thumbnail": "images/sss.jpg"
+  },
+  {
+    "title": "MIENTRAS SALGO #3",
+    "audioUrl": "https://res.cloudinary.com/dt5pkdr0k/video/upload/v1739810259/Mientras_Salgo_3_z9raoa.mp3",
+    "duration": "3:14",
+    "genre": "Urban",
+    "thumbnail": "images/Ime.jpg"
   }
 ] 
