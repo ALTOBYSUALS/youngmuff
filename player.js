@@ -66,12 +66,13 @@ window.addEventListener('beforeunload', function() {
 
 // Función para redirigir a la página principal si no hay reproductor
 function redirectToMainPage() {
-  // Verificar si estamos en la página principal
+  // Verificar si estamos en la página principal o en la página de ropa
   if (!window.location.pathname.includes('index.html') && 
+      !window.location.pathname.includes('ropa.html') &&
       window.location.pathname !== '/' && 
       window.location.pathname !== '') {
     
-    // Cargar el estado actual
+    // Solo redirigir si no estamos en la página de ropa o principal
     if (localStorage.getItem('player_state')) {
       try {
         syncPlayerState();
@@ -135,7 +136,8 @@ function updateTrueMediaPlayer() {
 document.addEventListener('DOMContentLoaded', function() {
   const mainPlayer = document.querySelector('.main-media-player');
   
-  // Si no estamos en una página con el reproductor, redirigir a la principal
+  // Si no estamos en una página con el reproductor, llamar a la función de redirección
+  // (ahora no redirigirá desde la página de ropa)
   if (!mainPlayer) {
     redirectToMainPage();
     return;

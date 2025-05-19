@@ -732,45 +732,43 @@ margin: 0rem !important;
     transition: transform 0.3s ease, opacity 0.3s ease;
   }
   
-  /* Estilos para los bullets numerados - VERSIÓN MEJORADA */
-  .swiper-bullet {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 30px !important;
-    height: 30px !important;
-    border-radius: 50% !important;
-    margin: 0 5px !important;
-    background-color: rgba(255, 255, 255, 0.2) !important;
-    color: white !important;
-    font-size: 14px !important;
-    font-weight: bold !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    border: 1px solid rgba(255, 255, 255, 0.5) !important;
-    position: absolute !important;
-    left: -40px !important; /* Posicionar al lado de la canción */
+  /* Estilos para los números de las pistas de audio */
+  .track-number {
+    position: absolute;
+    left: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 10;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.5);
   }
   
-  .swiper-bullet.is-active {
-    background-color: transparent !important;
-    color: white !important;
-    transform: scale(1.2) !important;
-    border: 1px solid white !important;
+  .swiper-slide.is-active .track-number {
+    background-color: transparent;
+    color: white;
+    transform: translateY(-50%) scale(1.2);
+    border: 1px solid white;
   }
   
-  .swiper-bullet-wrapper {
-    display: block !important;
-    position: relative !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 30px !important;
-    height: 100% !important;
-  }
-  
-  /* Asegurarse de que el track tenga posición relativa para posicionar los bullets */
+  /* Asegurar que la pista tenga posición relativa para los números */
   .track {
     position: relative !important;
+    padding-left: 15px;
+  }
+  
+  /* Ocultar los bullets originales */
+  .swiper-bullet-wrapper {
+    display: none !important;
   }
 </style>
 
@@ -835,7 +833,7 @@ document.addEventListener("DOMContentLoaded", function() {
         listSlide.setAttribute('tmplayer-parent', 'true-media-player');
         listSlide.innerHTML = `
           <div tmplayer-action="toggle" class="track">
-            <!-- Número de track directamente en el elemento -->
+            <!-- Número visible de track directamente en el elemento -->
             <div class="track-number">${index + 1}</div>
             <div class="thumbnail-wrapper">
               <div class="track-details-wrapper">
@@ -884,41 +882,11 @@ document.addEventListener("DOMContentLoaded", function() {
       
       console.log("✅ Slides creados y agregados al DOM");
       
-      // No usar swiper-bullet-wrapper para numeración, ya usamos numeración en los tracks
+      // Ocultar wrapper original de bullets
       const bulletWrapper = document.querySelector('.swiper-bullet-wrapper.is-slider-list');
       if (bulletWrapper) {
-        bulletWrapper.style.display = 'none'; // Ocultar wrapper original de bullets
+        bulletWrapper.style.display = 'none';
       }
-      
-      // Aplicar estilos a los números de track
-      const style = document.createElement('style');
-      style.textContent = `
-        .track-number {
-          position: absolute;
-          left: -40px;
-          top: 50%;
-          transform: translateY(-50%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 30px;
-          height: 30px;
-          border-radius: 50%;
-          background-color: rgba(255, 255, 255, 0.2);
-          color: white;
-          font-size: 14px;
-          font-weight: bold;
-          transition: all 0.3s ease;
-          border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-        .swiper-slide.is-active .track-number {
-          background-color: transparent;
-          color: white;
-          transform: translateY(-50%) scale(1.2);
-          border: 1px solid white;
-        }
-      `;
-      document.head.appendChild(style);
       
       // Desactivar la inicialización original de Swiper
       window.originalSwiperInit = false;
@@ -955,7 +923,24 @@ document.addEventListener("DOMContentLoaded", function() {
             prevEl: ".swiper-prev",
             disabledClass: "is-disabled"
           },
-          slideActiveClass: "is-active"
+          slideActiveClass: "is-active",
+          on: {
+            // Evento cuando cambia la slide activa
+            slideChange: function() {
+              // Actualizar el estilo de números
+              document.querySelectorAll('.track-number').forEach((num, i) => {
+                if (i === this.activeIndex) {
+                  num.style.backgroundColor = 'transparent';
+                  num.style.transform = 'translateY(-50%) scale(1.2)';
+                  num.style.border = '1px solid white';
+                } else {
+                  num.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                  num.style.transform = 'translateY(-50%)';
+                  num.style.border = '1px solid rgba(255, 255, 255, 0.5)';
+                }
+              });
+            }
+          }
         });
         
         // Configuración del Swiper secundario (Fotos de canciones)
@@ -990,6 +975,16 @@ document.addEventListener("DOMContentLoaded", function() {
             e.stopPropagation(); // Evitar que se propague al track
             window.listSwiper.slideTo(index);
           });
+        });
+        
+        // Aplicar estilo al número activo inicial
+        const activeIndex = window.listSwiper.activeIndex;
+        document.querySelectorAll('.track-number').forEach((num, i) => {
+          if (i === activeIndex) {
+            num.style.backgroundColor = 'transparent';
+            num.style.transform = 'translateY(-50%) scale(1.2)';
+            num.style.border = '1px solid white';
+          }
         });
       }
       
@@ -1103,18 +1098,6 @@ document.addEventListener("DOMContentLoaded", function() {
     .catch(error => {
       console.error("❌ Error cargando tracks.json:", error);
     });
-    
-  // Manejar la visibilidad del reproductor cuando se cambia de página
-  document.addEventListener('visibilitychange', function() {
-    // Guardar el estado cuando el usuario sale de la página
-    if (document.visibilityState === 'hidden') {
-      // Obtener la posición actual si hay un audio activo
-      const activeAudio = document.querySelector('audio');
-      if (activeAudio) {
-        localStorage.setItem('player_currentTime', activeAudio.currentTime);
-      }
-    }
-  });
 });
 </script>
 
