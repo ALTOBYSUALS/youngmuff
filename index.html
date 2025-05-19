@@ -718,6 +718,51 @@ margin: 0rem !important;
   }
 </style>
 
+<!-- Estilo adicional para asegurar que el reproductor sea visible -->
+<style>
+  .main-media-player {
+    display: block !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background-color: #000;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  
+  /* Estilos para los bullets numerados */
+  .swiper-bullet {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 50% !important;
+    margin: 5px 0 !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .swiper-bullet.is-active {
+    background-color: red !important;
+    color: white !important;
+    transform: scale(1.2) !important;
+  }
+  
+  .swiper-bullet-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 10px !important;
+  }
+</style>
+
 <script>
 // Script para cargar datos de tracks.json y llenar el Swiper
 document.addEventListener("DOMContentLoaded", function() {
@@ -815,7 +860,9 @@ document.addEventListener("DOMContentLoaded", function() {
         for (let i = 0; i < tracks.length; i++) {
           const bullet = document.createElement('div');
           bullet.className = i === 0 ? 'swiper-bullet is-active' : 'swiper-bullet';
+          // Asegurar que los números estén presentes y sean visibles
           bullet.textContent = i + 1;
+          bullet.setAttribute('data-track-index', i);
           bulletWrapper.appendChild(bullet);
         }
       }
@@ -853,7 +900,10 @@ document.addEventListener("DOMContentLoaded", function() {
             el: ".swiper-bullet-wrapper.is-slider-list",
             bulletActiveClass: "is-active",
             bulletClass: "swiper-bullet",
-            clickable: true
+            clickable: true,
+            renderBullet: function (index, className) {
+              return '<div class="' + className + '">' + (index + 1) + '</div>';
+            }
           },
           navigation: {
             nextEl: ".swiper-next",
@@ -880,6 +930,13 @@ document.addEventListener("DOMContentLoaded", function() {
         // Vincular los Swipers entre sí
         window.listSwiper.controller.control = window.photoSwiper;
         window.photoSwiper.controller.control = window.listSwiper;
+        
+        // Hacer clic en los bullets para navegar
+        document.querySelectorAll('.swiper-bullet').forEach((bullet, index) => {
+          bullet.addEventListener('click', () => {
+            window.listSwiper.slideTo(index);
+          });
+        });
       }
       
       // Función para inicializar TrueMediaPlayer
@@ -920,19 +977,5 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
-
-<!-- Estilo adicional para asegurar que el reproductor sea visible -->
-<style>
-  .main-media-player {
-    display: block !important;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 999;
-    background-color: #000;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-  }
-</style>
 </body>
 </html>
