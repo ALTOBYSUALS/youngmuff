@@ -766,9 +766,46 @@ margin: 0rem !important;
     padding-left: 15px;
   }
   
-  /* Ocultar los bullets originales */
-  .swiper-bullet-wrapper {
-    display: none !important;
+  /* Indicador horizontal en la parte inferior */
+  .horizontal-indicator {
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    bottom: 100px;
+    left: 0;
+    right: 0;
+    z-index: 100;
+  }
+  
+  .indicator-bullets {
+    display: flex;
+    gap: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 8px 16px;
+    border-radius: 20px;
+  }
+  
+  .indicator-bullet {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+  }
+  
+  .indicator-bullet.active {
+    background-color: transparent;
+    color: white;
+    transform: scale(1.2);
+    border: 1px solid white;
   }
 </style>
 
@@ -888,6 +925,9 @@ document.addEventListener("DOMContentLoaded", function() {
         bulletWrapper.style.display = 'none';
       }
       
+      // Crear indicador horizontal
+      createHorizontalIndicator(tracks.length, currentTrackIndex);
+      
       // Desactivar la inicialización original de Swiper
       window.originalSwiperInit = false;
       
@@ -939,6 +979,9 @@ document.addEventListener("DOMContentLoaded", function() {
                   num.style.border = '1px solid rgba(255, 255, 255, 0.5)';
                 }
               });
+              
+              // Actualizar indicador horizontal
+              updateHorizontalIndicator(this.activeIndex);
             }
           }
         });
@@ -984,6 +1027,55 @@ document.addEventListener("DOMContentLoaded", function() {
             num.style.backgroundColor = 'transparent';
             num.style.transform = 'translateY(-50%) scale(1.2)';
             num.style.border = '1px solid white';
+          }
+        });
+      }
+      
+      // Función para crear indicador horizontal en la parte inferior
+      function createHorizontalIndicator(totalTracks, activeIndex) {
+        // Crear contenedor principal
+        const indicatorContainer = document.createElement('div');
+        indicatorContainer.className = 'horizontal-indicator';
+        
+        // Crear contenedor de bullets
+        const bulletsContainer = document.createElement('div');
+        bulletsContainer.className = 'indicator-bullets';
+        
+        // Crear bullets (solo necesitamos mostrar los primeros 5 como máximo)
+        const maxBullets = Math.min(5, totalTracks);
+        for (let i = 0; i < maxBullets; i++) {
+          const bullet = document.createElement('div');
+          bullet.className = i === activeIndex ? 'indicator-bullet active' : 'indicator-bullet';
+          bullet.textContent = i + 1;
+          bullet.dataset.index = i;
+          
+          // Agregar evento de clic
+          bullet.addEventListener('click', function() {
+            const index = parseInt(this.dataset.index);
+            if (window.listSwiper) {
+              window.listSwiper.slideTo(index);
+            }
+          });
+          
+          bulletsContainer.appendChild(bullet);
+        }
+        
+        // Agregar bullets al contenedor principal
+        indicatorContainer.appendChild(bulletsContainer);
+        
+        // Agregar el indicador al cuerpo del documento
+        document.body.appendChild(indicatorContainer);
+      }
+      
+      // Función para actualizar el indicador horizontal
+      function updateHorizontalIndicator(activeIndex) {
+        const bullets = document.querySelectorAll('.indicator-bullet');
+        bullets.forEach(bullet => {
+          const index = parseInt(bullet.dataset.index);
+          if (index === activeIndex) {
+            bullet.classList.add('active');
+          } else {
+            bullet.classList.remove('active');
           }
         });
       }
