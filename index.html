@@ -546,6 +546,7 @@ margin: 0rem !important;
   <script src="js/webflow.js" type="text/javascript"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.10/typed.min.js"></script>
   <script>
+  /* Comentado temporalmente para depuración del reproductor
   var typed = new Typed(".typed-words", {
   strings: ["tmplayer-click", "tmplayer-action", "tmplayer-button"],
   typeSpeed: 75,
@@ -557,6 +558,7 @@ margin: 0rem !important;
   cursorChar: "|",
   attr: null,
 });
+*/
 </script>
   <!--  Swiper.js  -->
   <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
@@ -821,22 +823,32 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Inicializar True Media Player
-    if (typeof TrueMediaPlayer !== 'undefined') {
-      if(trueMediaPlayerInstance) {
-        // Si existe una instancia, intentamos refrescarla o reiniciarla
-        // La documentación de TrueMediaPlayer no es clara sobre cómo refrescar.
-        // Destruir y recrear podría ser una opción si el API lo permite, o llamar a un método de update.
-        // Por ahora, simplemente logueamos y vemos si funciona con la instancia existente.
-        console.log("ℹ️ TrueMediaPlayer ya estaba inicializado. Se intentará usar la instancia existente.");
-      } else {
+    function initTrueMediaPlayer() {
+      if (typeof TrueMediaPlayer !== 'undefined') {
+        if (trueMediaPlayerInstance && typeof trueMediaPlayerInstance.destroy === 'function') {
+          // Si TrueMediaPlayer ofrece un método destroy, lo llamamos antes de recrear.
+          // Esto es una suposición, la documentación de la librería debería confirmarlo.
+          // trueMediaPlayerInstance.destroy(); 
+          // console.log("ℹ️ Instancia previa de TrueMediaPlayer destruida.");
+        }
         trueMediaPlayerInstance = new TrueMediaPlayer({
           tmplayerSelector: "[tmplayer-init='true-media-player']",
+          // Opciones adicionales si son necesarias, como forzar el escaneo de nuevos elementos:
+          // dynamicContent: true // Esto es una suposición, chequear la documentación de TrueMediaPlayer
         });
-        console.log("✅ True Media Player inicializado por primera vez");
+        console.log("✅ True Media Player inicializado/actualizado.");
+        // Forzar al reproductor a reconocer las nuevas canciones (si tiene un método para ello)
+        // if (typeof trueMediaPlayerInstance.update === 'function') {
+        //   trueMediaPlayerInstance.update();
+        //   console.log("✅ TrueMediaPlayer.update() llamado.");
+        // }
+      } else {
+        console.warn("⚠️ TrueMediaPlayer no está definido aún. Reintentando en 1 segundo...");
+        setTimeout(initTrueMediaPlayer, 1000); // Reintentar después de 1 segundo
       }
-    } else {
-      console.warn("⚠️ TrueMediaPlayer no está definido.");
     }
+    initTrueMediaPlayer();
+
     console.log("🚀 Configuración de Swiper y Player completada.");
   }
 
