@@ -695,180 +695,55 @@ margin: 0rem !important;
 <script>
 // Script para cargar datos de tracks.json y llenar el Swiper
 document.addEventListener("DOMContentLoaded", function() {
-  const listSwiperContainer = document.querySelector('.swiper.is-slider-list');
-  const photoSwiperContainer = document.querySelector('.swiper.is-slider-photo');
-  const listWrapper = listSwiperContainer.querySelector('.swiper-wrapper.is-slider-list');
-  const photoWrapper = photoSwiperContainer.querySelector('.swiper-wrapper.is-slider-photo');
-  const mainMediaPlayer = document.querySelector('.main-media-player');
-
-  let listSwiperInstance = null;
-  let photoSwiperInstance = null;
-  let trueMediaPlayerInstance = null;
-
-  function initializeSwipersAndPlayer(tracks) {
-    // Limpiar slides existentes y mensajes de "No items found"
-    listWrapper.innerHTML = '';
-    photoWrapper.innerHTML = '';
-    document.querySelectorAll('.w-dyn-empty').forEach(el => el.style.display = 'none');
-
-    tracks.forEach((track, index) => {
-      const listSlide = document.createElement('div');
-      listSlide.className = 'swiper-slide is-slider-list';
-      listSlide.setAttribute('role', 'listitem');
-      listSlide.innerHTML = `
-        <div tmplayer-action="toggle" class="track">
-          <div class="thumbnail-wrapper">
-            <div class="track-details-wrapper">
-              <p class="slider-list_title">${track.title}</p>
-            </div>
-          </div>
-          <div class="tl-track-time-wrapper">
-            <img src="images/audio-active.svg" height="40" width="20" tmplayer-interaction="monitor-state" alt="" class="mp-audio-bar">
-            <div tmplayer-interaction="populate-duration" class="track-time">${track.duration}</div>
-          </div>
-          <div tmplayer-element="audio" class="true-media-player-track">
-            <div tmplayer-meta="audio-url" class="track-url">${track.audioUrl}</div>
-            <div tmplayer-meta="title" class="track-name">${track.title}</div>
-            <div tmplayer-meta="genre" class="track-genres">${track.genre}</div>
-            <img loading="lazy" tmplayer-meta="thumbnail" src="${track.thumbnail}" alt="" class="track-image">
-          </div>
-        </div>
-      `;
-      listWrapper.appendChild(listSlide);
-
-      const photoSlide = document.createElement('div');
-      photoSlide.className = 'swiper-slide is-slider-photo';
-      photoSlide.setAttribute('role', 'listitem');
-      photoSlide.innerHTML = `
-        <div class="slider-photo_card">
-          <img alt="${track.title}" src="${track.thumbnail}" class="slider-photo_img">
-          <a href="#" class="slider-photo_link w-inline-block">
-            <p class="slider-photo_link-text">${track.title}</p>
-            <div class="slider-photo_link-icon w-embed">
-              <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewbox="0 0 19.504 19.504">
-                <g id="Group_22" data-name="Group 22" transform="translate(-8740.293 -4088)">
-                  <path id="Path_4" data-name="Path 4" d="M.354.5H17.3V17.443" transform="translate(8741 4089)" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="3"></path>
-                  <line id="Line_2" data-name="Line 2" x1="16.943" y2="16.943" transform="translate(8741.354 4089.5)" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="3"></line>
-                </g>
-              </svg>
-            </div>
-          </a>
-        </div>
-      `;
-      photoWrapper.appendChild(photoSlide);
-    });
-
-    console.log("✅ Slides creados y agregados al DOM");
-
-    const bulletWrapper = document.querySelector('.slider-list_component .swiper-bullet-wrapper.is-slider-list');
-    bulletWrapper.innerHTML = '';
-    for (let i = 0; i < tracks.length; i++) {
-      const bullet = document.createElement('button'); // Cambiado a button para Swiper
-      bullet.className = 'swiper-bullet'; // Swiper añadirá is-active
-      bullet.textContent = i + 1;
-      bulletWrapper.appendChild(bullet);
-    }
-    
-    // Destruir instancias previas de Swiper si existen
-    if (listSwiperInstance) listSwiperInstance.destroy(true, true);
-    if (photoSwiperInstance) photoSwiperInstance.destroy(true, true);
-
-    // Inicializar Swiper para la lista de canciones
-    listSwiperInstance = new Swiper(listSwiperContainer, {
-      slidesPerView: "auto",
-      speed: 500,
-      loop: false,
-      direction: "vertical",
-      slideToClickedSlide: true,
-      mousewheel: { forceToAxis: true }, // Ajustado para mejor control vertical
-      pagination: {
-        el: bulletWrapper,
-        bulletActiveClass: "is-active",
-        bulletClass: "swiper-bullet",
-        clickable: true,
-      },
-      navigation: {
-        nextEl: ".slider-list_component .swiper-next",
-        prevEl: ".slider-list_component .swiper-prev",
-        disabledClass: "is-disabled"
-      },
-      slideActiveClass: "is-active",
-    });
-
-    // Inicializar Swiper para las fotos
-    photoSwiperInstance = new Swiper(photoSwiperContainer, {
-      slidesPerView: 1,
-      speed: 500,
-      loop: false,
-      keyboard: true,
-      effect: "coverflow",
-      coverflowEffect: {
-        rotate: 0,
-        scale: 0.8,
-        slideShadows: false
-      },
-      slideActiveClass: "is-active", // Asegurar que esta clase se aplique
-    });
-
-    // Vincular los Swipers
-    if (listSwiperInstance && photoSwiperInstance) {
-        listSwiperInstance.controller.control = photoSwiperInstance;
-        photoSwiperInstance.controller.control = listSwiperInstance;
-        console.log("✅ Swipers vinculados");
-    }
-
-    // Mostrar el reproductor principal
-    if (mainMediaPlayer) {
-        mainMediaPlayer.style.display = 'block'; 
-        mainMediaPlayer.style.transform = 'translate3d(0, 0, 0)'; // Resetear la transformación para que aparezca
-        console.log("✅ Reproductor principal visible");
-    }
-
-    // Inicializar True Media Player
-    function initTrueMediaPlayer() {
-      if (typeof TrueMediaPlayer !== 'undefined') {
-        if (trueMediaPlayerInstance && typeof trueMediaPlayerInstance.destroy === 'function') {
-          // Si TrueMediaPlayer ofrece un método destroy, lo llamamos antes de recrear.
-          // Esto es una suposición, la documentación de la librería debería confirmarlo.
-          // trueMediaPlayerInstance.destroy(); 
-          // console.log("ℹ️ Instancia previa de TrueMediaPlayer destruida.");
-        }
-        trueMediaPlayerInstance = new TrueMediaPlayer({
-          tmplayerSelector: "[tmplayer-init='true-media-player']",
-          // Opciones adicionales si son necesarias, como forzar el escaneo de nuevos elementos:
-          // dynamicContent: true // Esto es una suposición, chequear la documentación de TrueMediaPlayer
-        });
-        console.log("✅ True Media Player inicializado/actualizado.");
-        // Forzar al reproductor a reconocer las nuevas canciones (si tiene un método para ello)
-        // if (typeof trueMediaPlayerInstance.update === 'function') {
-        //   trueMediaPlayerInstance.update();
-        //   console.log("✅ TrueMediaPlayer.update() llamado.");
-        // }
-      } else {
-        console.warn("⚠️ TrueMediaPlayer no está definido aún. Reintentando en 1 segundo...");
-        setTimeout(initTrueMediaPlayer, 1000); // Reintentar después de 1 segundo
-      }
-    }
-    initTrueMediaPlayer();
-
-    console.log("🚀 Configuración de Swiper y Player completada.");
-  }
-
-  // Cargar los datos del archivo JSON
+  console.log("🚀 DOM cargado, comenzando script...");
+  
+  // Hacer que los contenedores sean visibles para depuración
+  document.querySelectorAll('.swiper-wrapper').forEach(el => {
+    el.style.border = '2px solid red';
+    el.style.minHeight = '200px';
+    console.log("🔍 Contenedor Swiper encontrado:", el);
+  });
+  
+  // Cargar el tracks.json para procesar los elementos
   fetch('/tracks.json')
     .then(response => response.json())
     .then(tracks => {
-      console.log("✅ Tracks cargados desde JSON:", tracks);
-      if (tracks && tracks.length > 0) {
-        initializeSwipersAndPlayer(tracks);
-      } else {
-        console.warn("⚠️ No se encontraron tracks en tracks.json o el archivo está vacío.");
-        document.querySelectorAll('.w-dyn-empty').forEach(el => el.style.display = 'block');
-      }
+      console.log("✅ Tracks cargados:", tracks);
+      
+      // ENFOQUE ULTRA SIMPLE: Crear HTML directamente sin Swiper
+      const tracksContainer = document.querySelector('.slider-list_component');
+      tracksContainer.innerHTML = `
+        <div style="border: 3px solid yellow; padding: 20px; margin: 20px; color: white;">
+          <h2>Lista de Canciones (${tracks.length} encontradas)</h2>
+          <ul style="list-style-type: none; padding: 0;">
+            ${tracks.map((track, index) => `
+              <li style="margin-bottom: 10px; padding: 15px; background-color: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center;">
+                <img src="${track.thumbnail}" style="width: 50px; height: 50px; margin-right: 15px; border-radius: 5px;" />
+                <div>
+                  <div style="font-weight: bold; color: #ff0000;">${track.title}</div>
+                  <div style="font-size: 0.8em; color: #aaa;">${track.genre} - ${track.duration}</div>
+                  <audio controls src="${track.audioUrl}" style="margin-top: 10px; width: 250px;"></audio>
+                </div>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      `;
+      
+      // Si queremos volver al enfoque Swiper después:
+      // 1. Reestructurar el HTML correctamente
+      // 2. Inicializar Swiper en un contenedor correcto
+      
+      console.log("✅ Lista básica de canciones creada. ¡Verifica si aparece!");
     })
     .catch(error => {
       console.error("❌ Error cargando tracks.json:", error);
-      document.querySelectorAll('.w-dyn-empty').forEach(el => el.style.display = 'block');
+      document.querySelector('.slider-list_component').innerHTML = `
+        <div style="border: 2px solid red; padding: 20px; margin: 20px; color: white;">
+          <h2>Error cargando canciones</h2>
+          <p>${error.message}</p>
+        </div>
+      `;
     });
 });
 </script>
