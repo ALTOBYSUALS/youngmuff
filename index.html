@@ -384,7 +384,7 @@ margin: 0rem !important;
         <div class="container-4">
           <div class="header-block"><img sizes="150px" srcset="images/Recurso-5saint-p-500.png 500w, images/Recurso-5saint-p-800.png 800w, images/Recurso-5saint-p-1080.png 1080w, images/Recurso-5saint-p-1600.png 1600w, images/Recurso-5saint.png 2424w" alt="" src="images/Recurso-5saint.png" loading="lazy" class="image-5">
             <h2>#FREEMAIKY (Video Oficial)</h2>
-            <div class="faded">BETA RELEASE 0.8</div>
+            <div class="faded">BETA RELEASE 0.8</div>
           </div>
           <div class="video-box">
             <div>
@@ -717,5 +717,110 @@ margin: 0rem !important;
     color: red !important;
   }
 </style>
+
+<script>
+// Script para cargar datos de tracks.json y llenar el Swiper
+document.addEventListener("DOMContentLoaded", function() {
+  // Cargar los datos del archivo JSON
+  fetch('/tracks.json')
+    .then(response => response.json())
+    .then(tracks => {
+      console.log("✅ Tracks cargados:", tracks);
+      
+      // Limpiar los contenedores dinámicos de Webflow
+      const listWrapper = document.querySelector('.swiper-wrapper.is-slider-list');
+      const photoWrapper = document.querySelector('.swiper-wrapper.is-slider-photo');
+      
+      // Borrar todos los elementos w-dyn-empty y w-dyn-bind-empty
+      document.querySelectorAll('.w-dyn-empty, .w-dyn-bind-empty').forEach(el => {
+        el.innerHTML = '';
+      });
+      
+      // Eliminar todos los slides existentes
+      listWrapper.innerHTML = '';
+      photoWrapper.innerHTML = '';
+      
+      // Llenar con nuestros datos del JSON
+      tracks.forEach((track, index) => {
+        // Crear slide para la lista de canciones
+        const listSlide = document.createElement('div');
+        listSlide.className = 'swiper-slide is-slider-list';
+        listSlide.setAttribute('role', 'listitem');
+        listSlide.innerHTML = `
+          <div tmplayer-action="toggle" class="track">
+            <div class="thumbnail-wrapper">
+              <div class="track-details-wrapper">
+                <p class="slider-list_title">${track.title}</p>
+              </div>
+            </div>
+            <div class="tl-track-time-wrapper">
+              <img src="images/audio-active.svg" height="40" width="20" tmplayer-interaction="monitor-state" alt="" class="mp-audio-bar">
+              <div tmplayer-interaction="populate-duration" class="track-time">${track.duration}</div>
+            </div>
+            <div tmplayer-element="audio" class="true-media-player-track">
+              <div tmplayer-meta="audio-url" class="track-url">${track.audioUrl}</div>
+              <div tmplayer-meta="title" class="track-name">${track.title}</div>
+              <div tmplayer-meta="genre" class="track-genres">${track.genre}</div>
+              <img loading="lazy" tmplayer-meta="thumbnail" src="${track.thumbnail}" alt="" class="track-image">
+            </div>
+          </div>
+        `;
+        
+        // Crear slide para la imagen de la canción
+        const photoSlide = document.createElement('div');
+        photoSlide.className = 'swiper-slide is-slider-photo';
+        photoSlide.setAttribute('role', 'listitem');
+        photoSlide.innerHTML = `
+          <div class="slider-photo_card">
+            <img alt="${track.title}" src="${track.thumbnail}" class="slider-photo_img">
+            <a href="#" class="slider-photo_link w-inline-block">
+              <p class="slider-photo_link-text">${track.title}</p>
+              <div class="slider-photo_link-icon w-embed">
+                <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewbox="0 0 19.504 19.504">
+                  <g id="Group_22" data-name="Group 22" transform="translate(-8740.293 -4088)">
+                    <path id="Path_4" data-name="Path 4" d="M.354.5H17.3V17.443" transform="translate(8741 4089)" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="3"></path>
+                    <line id="Line_2" data-name="Line 2" x1="16.943" y2="16.943" transform="translate(8741.354 4089.5)" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="3"></line>
+                  </g>
+                </svg>
+              </div>
+            </a>
+          </div>
+        `;
+        
+        // Agregar el slide a los contenedores
+        listWrapper.appendChild(listSlide);
+        photoWrapper.appendChild(photoSlide);
+      });
+      
+      console.log("✅ Slides creados y agregados al DOM");
+      
+      // Actualizar el número de bullets para que coincida con la cantidad de tracks
+      const bulletWrapper = document.querySelector('.swiper-bullet-wrapper.is-slider-list');
+      bulletWrapper.innerHTML = '';
+      for (let i = 0; i < tracks.length; i++) {
+        const bullet = document.createElement('div');
+        bullet.className = i === 0 ? 'swiper-bullet is-active' : 'swiper-bullet';
+        bullet.textContent = i + 1;
+        bulletWrapper.appendChild(bullet);
+      }
+      
+      // Reinicializar Swiper
+      if (window.listSwiper) {
+        window.listSwiper.destroy();
+      }
+      
+      // Configuramos el Media Player (true-audio-player)
+      if (typeof TrueMediaPlayer !== 'undefined') {
+        console.log("✅ Inicializando True Media Player");
+        const trueMediaPlayerInst = new TrueMediaPlayer({
+          tmplayerSelector: "[tmplayer-init]",
+        });
+      }
+    })
+    .catch(error => {
+      console.error("❌ Error cargando tracks.json:", error);
+    });
+});
+</script>
 </body>
 </html>

@@ -1,0 +1,30 @@
+[
+  {
+    "title": "#FREEMAIKY (Video Oficial)",
+    "audioUrl": "https://altovisual.sfo3.cdn.digitaloceanspaces.com/songs/freemaiky.mp3",
+    "duration": "3:14",
+    "genre": "Hip-Hop",
+    "thumbnail": "images/Recurso-5saint.png"
+  },
+  {
+    "title": "YOUNGMUFF - Flow de Barrio",
+    "audioUrl": "https://altovisual.sfo3.cdn.digitaloceanspaces.com/songs/flowdebarrio.mp3",
+    "duration": "2:45",
+    "genre": "Trap",
+    "thumbnail": "images/muff144.jpg"
+  },
+  {
+    "title": "Maikymoves - Sin Miedo (ft. Saint)",
+    "audioUrl": "https://altovisual.sfo3.cdn.digitaloceanspaces.com/songs/sinmiedo.mp3",
+    "duration": "3:30",
+    "genre": "Reggaeton",
+    "thumbnail": "images/Grupo-3.png"
+  },
+  {
+    "title": "YOUNGMUFF - La Calle Sabe",
+    "audioUrl": "https://altovisual.sfo3.cdn.digitaloceanspaces.com/songs/lacallesabe.mp3",
+    "duration": "2:55",
+    "genre": "Hip-Hop",
+    "thumbnail": "images/sss.jpg"
+  }
+] 
