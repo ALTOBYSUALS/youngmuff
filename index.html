@@ -731,35 +731,40 @@ margin: 0rem !important;
     transition: transform 0.3s ease, opacity 0.3s ease;
   }
   
-  /* Estilos para los bullets numerados */
+  /* Estilos para los bullets numerados - VERSIÓN HORIZONTAL */
   .swiper-bullet {
-    display: flex !important;
+    display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     width: 30px !important;
     height: 30px !important;
     border-radius: 50% !important;
-    margin: 5px 0 !important;
+    margin: 0 10px !important;
     background-color: rgba(255, 255, 255, 0.2) !important;
     color: white !important;
     font-size: 14px !important;
     font-weight: bold !important;
     cursor: pointer !important;
     transition: all 0.3s ease !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
   }
   
   .swiper-bullet.is-active {
-    background-color: red !important;
+    background-color: transparent !important;
     color: white !important;
     transform: scale(1.2) !important;
+    border: 1px solid white !important;
   }
   
   .swiper-bullet-wrapper {
     display: flex !important;
-    flex-direction: column !important;
+    flex-direction: row !important; /* Cambio a horizontal */
     align-items: center !important;
     justify-content: center !important;
-    padding: 10px !important;
+    padding: 20px 10px !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    width: 100% !important;
   }
 </style>
 
@@ -864,6 +869,12 @@ document.addEventListener("DOMContentLoaded", function() {
           bullet.textContent = i + 1;
           bullet.setAttribute('data-track-index', i);
           bulletWrapper.appendChild(bullet);
+        }
+        
+        // Mover los bullets a la posición correcta en la parte inferior
+        const sliderComponent = document.querySelector('.slider-list_component');
+        if (sliderComponent) {
+          sliderComponent.appendChild(bulletWrapper);
         }
       }
       
