@@ -1,225 +1,197 @@
 // REPRODUCTOR PERSISTENTE - YOUNG MUFF
 // Este script debe incluirse en todas las páginas para mantener el reproductor
 
-// Verificar si estamos en una página que no sea el reproductor principal
-if (!document.querySelector('.main-media-player')) {
-  // Crear el reproductor si no existe en esta página
-  (function createPersistentPlayer() {
-    // Verificar si hay estado guardado
-    if (!localStorage.getItem('player_state')) {
-      console.log("⏭️ No hay estado del reproductor guardado, omitiendo inicialización");
-      return;
+// Variables globales para compartir entre instancias
+window.youngMuffPlayer = window.youngMuffPlayer || {
+  currentIndex: 0,
+  isPlaying: false,
+  currentTime: 0,
+  audioElement: null,
+  tracks: [],
+  initialized: false
+};
+
+// Función para sincronizar el estado entre páginas
+function syncPlayerState() {
+  try {
+    const storedState = localStorage.getItem('player_state');
+    if (storedState) {
+      const playerState = JSON.parse(storedState);
+      window.youngMuffPlayer.currentIndex = playerState.trackIndex || 0;
+      window.youngMuffPlayer.isPlaying = playerState.isPlaying || false;
+      window.youngMuffPlayer.currentTime = playerState.currentTime || 0;
+      console.log("🔄 Estado sincronizado:", window.youngMuffPlayer);
     }
+  } catch (e) {
+    console.error("❌ Error sincronizando estado:", e);
+  }
+  
+  // Programar la próxima sincronización en 1 segundo
+  setTimeout(syncPlayerState, 1000);
+}
+
+// Iniciar sincronización
+syncPlayerState();
+
+// Guardar estado compartido
+function saveSharedState() {
+  try {
+    const playerState = {
+      trackIndex: window.youngMuffPlayer.currentIndex,
+      isPlaying: window.youngMuffPlayer.isPlaying,
+      currentTime: window.youngMuffPlayer.currentTime || 0
+    };
+    localStorage.setItem('player_state', JSON.stringify(playerState));
+  } catch (e) {
+    console.error("❌ Error guardando estado compartido:", e);
+  }
+}
+
+// Evento de almacenamiento para sincronizar entre ventanas/pestañas
+window.addEventListener('storage', function(e) {
+  if (e.key === 'player_state') {
+    syncPlayerState();
     
-    let playerState;
-    try {
-      playerState = JSON.parse(localStorage.getItem('player_state'));
-    } catch (e) {
-      console.error("❌ Error al recuperar estado del reproductor:", e);
-      return;
+    // Actualizar el reproductor activo si existe
+    if (window.trueMediaPlayerInst) {
+      updateTrueMediaPlayer();
     }
+  }
+});
+
+// Guardar estado al salir
+window.addEventListener('beforeunload', function() {
+  saveSharedState();
+});
+
+// Función para redirigir a la página principal si no hay reproductor
+function redirectToMainPage() {
+  // Verificar si estamos en la página principal
+  if (!window.location.pathname.includes('index.html') && 
+      window.location.pathname !== '/' && 
+      window.location.pathname !== '') {
     
-    // Crear el reproductor flotante
-    const playerContainer = document.createElement('div');
-    playerContainer.className = 'floating-player';
-    playerContainer.innerHTML = `
-      <div class="floating-player-inner">
-        <div class="player-controls">
-          <button id="floatingPrevBtn">⏮️</button>
-          <button id="floatingPlayBtn">▶️</button>
-          <button id="floatingPauseBtn" style="display:none">⏸️</button>
-          <button id="floatingNextBtn">⏭️</button>
-        </div>
-        <div class="player-info">
-          <div id="floatingTrackTitle"></div>
-          <div class="progress-container">
-            <div id="floatingProgress"></div>
-          </div>
-        </div>
-        <button id="floatingBackBtn">🏠</button>
-      </div>
-    `;
-    
-    document.body.appendChild(playerContainer);
-    
-    // Estilos para el reproductor flotante
-    const styleElement = document.createElement('style');
-    styleElement.textContent = `
-      .floating-player {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background-color: #000;
-        color: white;
-        z-index: 9999;
-        padding: 10px;
-        border-top: 1px solid #333;
-      }
-      .floating-player-inner {
-        display: flex;
-        align-items: center;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-      .player-controls {
-        display: flex;
-        gap: 10px;
-        margin-right: 15px;
-      }
-      .player-controls button {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: white;
-      }
-      .player-info {
-        flex: 1;
-      }
-      #floatingTrackTitle {
-        font-weight: bold;
-        margin-bottom: 5px;
-      }
-      .progress-container {
-        width: 100%;
-        height: 5px;
-        background-color: #333;
-      }
-      #floatingProgress {
-        height: 100%;
-        background-color: red;
-        width: 0%;
-      }
-      #floatingBackBtn {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: white;
-        margin-left: 15px;
-      }
-    `;
-    document.head.appendChild(styleElement);
-    
-    // Cargar datos de canciones
-    fetch('/tracks.json')
-      .then(response => response.json())
-      .then(tracks => {
-        // Obtener elementos del DOM
-        const playBtn = document.getElementById('floatingPlayBtn');
-        const pauseBtn = document.getElementById('floatingPauseBtn');
-        const prevBtn = document.getElementById('floatingPrevBtn');
-        const nextBtn = document.getElementById('floatingNextBtn');
-        const backBtn = document.getElementById('floatingBackBtn');
-        const trackTitle = document.getElementById('floatingTrackTitle');
-        const progressBar = document.getElementById('floatingProgress');
+    // Cargar el estado actual
+    if (localStorage.getItem('player_state')) {
+      try {
+        syncPlayerState();
         
-        // Configurar estado inicial
-        let currentIndex = playerState.trackIndex || 0;
-        let isPlaying = playerState.isPlaying || false;
-        let audioElement = new Audio(tracks[currentIndex].audioUrl);
-        audioElement.currentTime = playerState.currentTime || 0;
-        
-        // Actualizar título
-        trackTitle.textContent = tracks[currentIndex].title;
-        
-        // Inicializar controles
-        if (isPlaying) {
-          playBtn.style.display = 'none';
-          pauseBtn.style.display = 'block';
-          audioElement.play();
-        } else {
-          playBtn.style.display = 'block';
-          pauseBtn.style.display = 'none';
+        // Redireccionar a la página principal con un parámetro para activar la canción
+        window.location.href = '/index.html?play=' + window.youngMuffPlayer.currentIndex + 
+                              '&time=' + window.youngMuffPlayer.currentTime + 
+                              '&state=' + (window.youngMuffPlayer.isPlaying ? 'play' : 'pause');
+      } catch (e) {
+        console.error("❌ Error al redireccionar:", e);
+        window.location.href = '/index.html';
+      }
+    } else {
+      // Si no hay estado, simplemente redirigir a la página principal
+      window.location.href = '/index.html';
+    }
+  }
+}
+
+// Actualizar el TrueMediaPlayer según el estado global
+function updateTrueMediaPlayer() {
+  if (!window.trueMediaPlayerInst) return;
+  
+  // Verificar si hay pistas y elementos de audio
+  const trackElements = document.querySelectorAll('[tmplayer-parent="true-media-player"]');
+  if (!trackElements.length) return;
+  
+  // Encontrar la pista actual
+  const currentTrack = trackElements[window.youngMuffPlayer.currentIndex];
+  if (!currentTrack) return;
+  
+  // Encontrar el botón de toggle y el audio
+  const toggleButton = currentTrack.querySelector('[tmplayer-action="toggle"]');
+  if (!toggleButton) return;
+  
+  // Aplicar cambios al reproductor
+  setTimeout(() => {
+    const audioElements = document.querySelectorAll('audio');
+    
+    // Si hay elementos de audio, actualizar el que corresponde a la pista actual
+    if (audioElements.length > 0) {
+      const currentAudio = audioElements[window.youngMuffPlayer.currentIndex];
+      if (currentAudio) {
+        // Actualizar la posición de reproducción si difiere significativamente
+        if (Math.abs(currentAudio.currentTime - window.youngMuffPlayer.currentTime) > 2) {
+          currentAudio.currentTime = window.youngMuffPlayer.currentTime;
         }
         
-        // Eventos de reproducción
-        playBtn.addEventListener('click', function() {
-          audioElement.play();
-          playBtn.style.display = 'none';
-          pauseBtn.style.display = 'block';
-          isPlaying = true;
-          updatePlayerState();
-        });
-        
-        pauseBtn.addEventListener('click', function() {
-          audioElement.pause();
-          pauseBtn.style.display = 'none';
-          playBtn.style.display = 'block';
-          isPlaying = false;
-          updatePlayerState();
-        });
-        
-        // Navegación entre canciones
-        prevBtn.addEventListener('click', function() {
-          changeTrack(currentIndex - 1 < 0 ? tracks.length - 1 : currentIndex - 1);
-        });
-        
-        nextBtn.addEventListener('click', function() {
-          changeTrack(currentIndex + 1 >= tracks.length ? 0 : currentIndex + 1);
-        });
-        
-        // Volver a la página principal
-        backBtn.addEventListener('click', function() {
-          window.location.href = '/index.html';
-        });
-        
-        // Actualizar progreso
-        audioElement.addEventListener('timeupdate', function() {
-          const percent = (audioElement.currentTime / audioElement.duration) * 100;
-          progressBar.style.width = `${percent}%`;
-          
-          // Guardar tiempo actual periódicamente
-          if (Math.floor(audioElement.currentTime) % 5 === 0) {
-            updatePlayerState();
-          }
-        });
-        
-        // Cambiar de canción al terminar
-        audioElement.addEventListener('ended', function() {
-          changeTrack(currentIndex + 1 >= tracks.length ? 0 : currentIndex + 1);
-        });
-        
-        // Función para cambiar de canción
-        function changeTrack(index) {
-          currentIndex = index;
-          
-          // Guardar tiempo actual
-          updatePlayerState();
-          
-          // Parar reproducción actual
-          audioElement.pause();
-          
-          // Actualizar título y fuente de audio
-          trackTitle.textContent = tracks[currentIndex].title;
-          audioElement.src = tracks[currentIndex].audioUrl;
-          
-          // Reproducir si estaba reproduciendo
-          if (isPlaying) {
-            audioElement.play();
-          }
-          
-          updatePlayerState();
+        // Reproducir o pausar según el estado
+        if (window.youngMuffPlayer.isPlaying && currentAudio.paused) {
+          currentAudio.play().catch(e => console.log("Error al reproducir:", e));
+        } else if (!window.youngMuffPlayer.isPlaying && !currentAudio.paused) {
+          currentAudio.pause();
         }
-        
-        // Guardar estado
-        function updatePlayerState() {
-          const newState = {
-            trackIndex: currentIndex,
-            isPlaying: isPlaying,
-            currentTime: audioElement.currentTime || 0
-          };
-          localStorage.setItem('player_state', JSON.stringify(newState));
-        }
-        
-        // Guardar estado al salir
-        window.addEventListener('beforeunload', function() {
-          updatePlayerState();
-        });
-      })
-      .catch(error => {
-        console.error("❌ Error cargando tracks.json:", error);
+      }
+    }
+  }, 300);
+}
+
+// Verificar si estamos en la página principal y hay que inicializar el reproductor
+document.addEventListener('DOMContentLoaded', function() {
+  const mainPlayer = document.querySelector('.main-media-player');
+  
+  // Si no estamos en una página con el reproductor, redirigir a la principal
+  if (!mainPlayer) {
+    redirectToMainPage();
+    return;
+  }
+  
+  // En la página principal, verificar parámetros de URL para reproducción
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('play')) {
+    const trackIndex = parseInt(urlParams.get('play'));
+    const trackTime = parseFloat(urlParams.get('time'));
+    const playState = urlParams.get('state');
+    
+    // Actualizar el estado global
+    window.youngMuffPlayer.currentIndex = trackIndex;
+    window.youngMuffPlayer.currentTime = trackTime;
+    window.youngMuffPlayer.isPlaying = playState === 'play';
+    
+    // Limpiar los parámetros de la URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+  
+  // Verificar periódicamente si TrueMediaPlayer está inicializado
+  const trueMediaPlayerCheck = setInterval(() => {
+    if (window.trueMediaPlayerInst) {
+      clearInterval(trueMediaPlayerCheck);
+      
+      // Escuchar eventos del reproductor para actualizar el estado global
+      document.addEventListener('tmplayer:play', function() {
+        window.youngMuffPlayer.isPlaying = true;
+        saveSharedState();
       });
-  })();
-} 
+      
+      document.addEventListener('tmplayer:pause', function() {
+        window.youngMuffPlayer.isPlaying = false;
+        saveSharedState();
+      });
+      
+      document.addEventListener('tmplayer:timeupdate', function(e) {
+        if (e && e.detail && e.detail.currentTime !== undefined) {
+          window.youngMuffPlayer.currentTime = e.detail.currentTime;
+          // Guardar cada 5 segundos para no sobrecargar
+          if (Math.floor(e.detail.currentTime) % 5 === 0) {
+            saveSharedState();
+          }
+        }
+      });
+      
+      document.addEventListener('tmplayer:trackchange', function(e) {
+        if (e && e.detail && e.detail.trackIndex !== undefined) {
+          window.youngMuffPlayer.currentIndex = e.detail.trackIndex;
+          saveSharedState();
+        }
+      });
+      
+      // Actualizar el reproductor con el estado guardado
+      updateTrueMediaPlayer();
+    }
+  }, 200);
+}); 

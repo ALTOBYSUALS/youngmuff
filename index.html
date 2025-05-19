@@ -418,6 +418,7 @@ margin: 0rem !important;
                 <div bind="03435d7e-339f-18c5-4793-ab497b40f6b9" tmplayer-dynamic-content="true-media-player" role="list" class="swiper-wrapper is-slider-list w-dyn-items">
                   <div bind="03435d7e-339f-18c5-4793-ab497b40f6ba" tmplayer-parent="true-media-player" role="listitem" class="swiper-slide is-slider-list w-dyn-item">
                     <div tmplayer-action="toggle" data-w-id="03435d7e-339f-18c5-4793-ab497b40f6bb" class="track">
+                      <div class="track-number">1</div>
                       <div class="thumbnail-wrapper">
                         <div class="track-details-wrapper">
                           <p sym-bind="{&quot;children&quot;:{&quot;type&quot;:&quot;Call&quot;,&quot;val&quot;:{&quot;fun&quot;:{&quot;type&quot;:&quot;Variable&quot;,&quot;val&quot;:[&quot;DynamoGateway&quot;,&quot;dynamoPlainTextToListOfElements&quot;]},&quot;arg&quot;:{&quot;type&quot;:&quot;Select&quot;,&quot;val&quot;:{&quot;from&quot;:{&quot;type&quot;:&quot;Variable&quot;,&quot;val&quot;:&quot;Dynamo&quot;},&quot;prop&quot;:&quot;name&quot;}}}}}" tmplayer-meta="title" class="slider-list_title w-dyn-bind-empty"></p>
@@ -731,7 +732,7 @@ margin: 0rem !important;
     transition: transform 0.3s ease, opacity 0.3s ease;
   }
   
-  /* Estilos para los bullets numerados - VERSIÓN HORIZONTAL */
+  /* Estilos para los bullets numerados - VERSIÓN MEJORADA */
   .swiper-bullet {
     display: inline-flex !important;
     align-items: center !important;
@@ -739,7 +740,7 @@ margin: 0rem !important;
     width: 30px !important;
     height: 30px !important;
     border-radius: 50% !important;
-    margin: 0 10px !important;
+    margin: 0 5px !important;
     background-color: rgba(255, 255, 255, 0.2) !important;
     color: white !important;
     font-size: 14px !important;
@@ -747,6 +748,8 @@ margin: 0rem !important;
     cursor: pointer !important;
     transition: all 0.3s ease !important;
     border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    position: absolute !important;
+    left: -40px !important; /* Posicionar al lado de la canción */
   }
   
   .swiper-bullet.is-active {
@@ -757,14 +760,17 @@ margin: 0rem !important;
   }
   
   .swiper-bullet-wrapper {
-    display: flex !important;
-    flex-direction: row !important; /* Cambio a horizontal */
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 20px 10px !important;
-    position: absolute !important;
-    bottom: 0 !important;
-    width: 100% !important;
+    display: block !important;
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 30px !important;
+    height: 100% !important;
+  }
+  
+  /* Asegurarse de que el track tenga posición relativa para posicionar los bullets */
+  .track {
+    position: relative !important;
   }
 </style>
 
@@ -829,6 +835,8 @@ document.addEventListener("DOMContentLoaded", function() {
         listSlide.setAttribute('tmplayer-parent', 'true-media-player');
         listSlide.innerHTML = `
           <div tmplayer-action="toggle" class="track">
+            <!-- Número de track directamente en el elemento -->
+            <div class="track-number">${index + 1}</div>
             <div class="thumbnail-wrapper">
               <div class="track-details-wrapper">
                 <p class="slider-list_title">${track.title}</p>
@@ -876,25 +884,41 @@ document.addEventListener("DOMContentLoaded", function() {
       
       console.log("✅ Slides creados y agregados al DOM");
       
-      // Actualizar el número de bullets para que coincida con la cantidad de tracks
+      // No usar swiper-bullet-wrapper para numeración, ya usamos numeración en los tracks
       const bulletWrapper = document.querySelector('.swiper-bullet-wrapper.is-slider-list');
       if (bulletWrapper) {
-        bulletWrapper.innerHTML = '';
-        for (let i = 0; i < tracks.length; i++) {
-          const bullet = document.createElement('div');
-          bullet.className = i === 0 ? 'swiper-bullet is-active' : 'swiper-bullet';
-          // Asegurar que los números estén presentes y sean visibles
-          bullet.textContent = i + 1;
-          bullet.setAttribute('data-track-index', i);
-          bulletWrapper.appendChild(bullet);
-        }
-        
-        // Mover los bullets a la posición correcta en la parte inferior
-        const sliderComponent = document.querySelector('.slider-list_component');
-        if (sliderComponent) {
-          sliderComponent.appendChild(bulletWrapper);
-        }
+        bulletWrapper.style.display = 'none'; // Ocultar wrapper original de bullets
       }
+      
+      // Aplicar estilos a los números de track
+      const style = document.createElement('style');
+      style.textContent = `
+        .track-number {
+          position: absolute;
+          left: -40px;
+          top: 50%;
+          transform: translateY(-50%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          background-color: rgba(255, 255, 255, 0.2);
+          color: white;
+          font-size: 14px;
+          font-weight: bold;
+          transition: all 0.3s ease;
+          border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .swiper-slide.is-active .track-number {
+          background-color: transparent;
+          color: white;
+          transform: translateY(-50%) scale(1.2);
+          border: 1px solid white;
+        }
+      `;
+      document.head.appendChild(style);
       
       // Desactivar la inicialización original de Swiper
       window.originalSwiperInit = false;
@@ -925,15 +949,6 @@ document.addEventListener("DOMContentLoaded", function() {
           initialSlide: currentTrackIndex, // Usar índice guardado
           mousewheel: {
             forceToAxis: false
-          },
-          pagination: {
-            el: ".swiper-bullet-wrapper.is-slider-list",
-            bulletActiveClass: "is-active",
-            bulletClass: "swiper-bullet",
-            clickable: true,
-            renderBullet: function (index, className) {
-              return '<div class="' + className + '">' + (index + 1) + '</div>';
-            }
           },
           navigation: {
             nextEl: ".swiper-next",
@@ -969,9 +984,10 @@ document.addEventListener("DOMContentLoaded", function() {
           savePlayerState();
         });
         
-        // Hacer clic en los bullets para navegar
-        document.querySelectorAll('.swiper-bullet').forEach((bullet, index) => {
-          bullet.addEventListener('click', () => {
+        // Hacer clic en los números de tracks para navegar
+        document.querySelectorAll('.track-number').forEach((number, index) => {
+          number.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evitar que se propague al track
             window.listSwiper.slideTo(index);
           });
         });
@@ -989,53 +1005,55 @@ document.addEventListener("DOMContentLoaded", function() {
             mediaPlayer.style.transform = 'none';
           }
           
-          // Crear la instancia del reproductor
-          window.trueMediaPlayerInst = new TrueMediaPlayer({
-            tmplayerSelector: "[tmplayer-init='true-media-player']",
-            onPlayerReady: function() {
-              // Restaurar el estado del reproductor
-              if (currentTrackIndex > 0) {
-                window.listSwiper.slideTo(currentTrackIndex);
-              }
-              
-              // Si estaba reproduciendo, continuar
-              setTimeout(() => {
-                const audioElements = document.querySelectorAll('audio');
-                if (audioElements.length > 0 && isPlaying) {
-                  const currentAudio = audioElements[currentTrackIndex];
-                  if (currentAudio) {
-                    // Restaurar la posición de reproducción
-                    currentAudio.currentTime = currentTime;
-                    // Reproducir si estaba activo
-                    if (isPlaying) {
-                      currentAudio.play();
+          // Crear la instancia del reproductor solo si no existe
+          if (!window.trueMediaPlayerInst) {
+            window.trueMediaPlayerInst = new TrueMediaPlayer({
+              tmplayerSelector: "[tmplayer-init='true-media-player']",
+              onPlayerReady: function() {
+                // Restaurar el estado del reproductor
+                if (currentTrackIndex > 0) {
+                  window.listSwiper.slideTo(currentTrackIndex);
+                }
+                
+                // Si estaba reproduciendo, continuar
+                setTimeout(() => {
+                  const audioElements = document.querySelectorAll('audio');
+                  if (audioElements.length > 0 && isPlaying) {
+                    const currentAudio = audioElements[currentTrackIndex];
+                    if (currentAudio) {
+                      // Restaurar la posición de reproducción
+                      currentAudio.currentTime = currentTime;
+                      // Reproducir si estaba activo
+                      if (isPlaying) {
+                        currentAudio.play().catch(e => console.log("Error al reproducir:", e));
+                      }
                     }
                   }
+                }, 1000);
+              },
+              onPlay: function() {
+                isPlaying = true;
+                savePlayerState();
+              },
+              onPause: function() {
+                isPlaying = false;
+                savePlayerState();
+              },
+              onTimeUpdate: function(e) {
+                // Guardar cada 5 segundos para no sobrecargar localStorage
+                if (Math.floor(e.detail.currentTime) % 5 === 0) {
+                  currentTime = e.detail.currentTime;
+                  savePlayerState();
                 }
-              }, 1000);
-            },
-            onPlay: function() {
-              isPlaying = true;
-              savePlayerState();
-            },
-            onPause: function() {
-              isPlaying = false;
-              savePlayerState();
-            },
-            onTimeUpdate: function(e) {
-              // Guardar cada 5 segundos para no sobrecargar localStorage
-              if (Math.floor(e.detail.currentTime) % 5 === 0) {
-                currentTime = e.detail.currentTime;
-                savePlayerState();
+              },
+              onTrackChange: function(e) {
+                if (e && e.detail && e.detail.trackIndex !== undefined) {
+                  currentTrackIndex = e.detail.trackIndex;
+                  savePlayerState();
+                }
               }
-            },
-            onTrackChange: function(e) {
-              if (e && e.detail && e.detail.trackIndex !== undefined) {
-                currentTrackIndex = e.detail.trackIndex;
-                savePlayerState();
-              }
-            }
-          });
+            });
+          }
           
           // Hacer visible el reproductor después de inicializado
           setTimeout(() => {

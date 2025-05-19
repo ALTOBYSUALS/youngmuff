@@ -95,7 +95,7 @@
           </div>
           <div class="notice-container">
             <p class="notice-text">Estamos trabajando en nuestra colección exclusiva. ¡Regresa pronto!</p>
-            <a href="index.html" class="link-button">Volver a la música</a>
+            <a href="index.html" class="link-button" id="continuarReproduccion">Volver a la música sin interrumpir</a>
           </div>
         </div>
       </div>
@@ -190,5 +190,32 @@
   
   <!-- Script para reproductor persistente entre páginas -->
   <script src="player.js"></script>
+  
+  <script>
+    // Mejorar el botón de "Volver a la música" para que mantenga el estado del reproductor
+    document.getElementById('continuarReproduccion').addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Recuperar estado del reproductor si existe
+      if (localStorage.getItem('player_state')) {
+        try {
+          const playerState = JSON.parse(localStorage.getItem('player_state'));
+          const trackIndex = playerState.trackIndex || 0;
+          const currentTime = playerState.currentTime || 0;
+          const isPlaying = playerState.isPlaying || false;
+          
+          // Redirigir con parámetros para continuar la reproducción
+          window.location.href = '/index.html?play=' + trackIndex + 
+                                '&time=' + currentTime + 
+                                '&state=' + (isPlaying ? 'play' : 'pause');
+        } catch (e) {
+          // Si hay error, simplemente redirigir
+          window.location.href = '/index.html';
+        }
+      } else {
+        window.location.href = '/index.html';
+      }
+    });
+  </script>
 </body>
 </html> 
