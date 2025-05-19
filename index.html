@@ -368,7 +368,7 @@ margin: 0rem !important;
               <a href="index.html" aria-current="page" class="text-style-link is-grey w-inline-block w--current">
                 <div>Musica</div>
               </a>
-              <a href="inserte-codigo.html" class="text-style-link is-grey w-inline-block">
+              <a href="ropa.html" class="text-style-link is-grey w-inline-block">
                 <div>Ropa</div>
               </a>
               <a href="#" class="text-style-link is-grey w-inline-block"></a>
@@ -778,6 +778,24 @@ document.addEventListener("DOMContentLoaded", function() {
     mainMediaPlayer.style.transform = 'none';
   }
 
+  // Variables para persistencia entre páginas
+  let currentTrackIndex = 0;
+  let isPlaying = false;
+  let currentTime = 0;
+  
+  // Recuperar estado del reproductor si existe
+  if (localStorage.getItem('player_state')) {
+    try {
+      const playerState = JSON.parse(localStorage.getItem('player_state'));
+      currentTrackIndex = playerState.trackIndex || 0;
+      isPlaying = playerState.isPlaying || false;
+      currentTime = playerState.currentTime || 0;
+      console.log("✅ Estado del reproductor recuperado:", playerState);
+    } catch (e) {
+      console.error("❌ Error recuperando estado del reproductor:", e);
+    }
+  }
+
   // Cargar los datos del archivo JSON
   fetch('/tracks.json')
     .then(response => response.json())
@@ -904,6 +922,7 @@ document.addEventListener("DOMContentLoaded", function() {
           loop: false,
           direction: "vertical",
           slideToClickedSlide: true,
+          initialSlide: currentTrackIndex, // Usar índice guardado
           mousewheel: {
             forceToAxis: false
           },
@@ -929,6 +948,7 @@ document.addEventListener("DOMContentLoaded", function() {
           slidesPerView: 1,
           speed: 500,
           loop: false,
+          initialSlide: currentTrackIndex, // Usar índice guardado
           keyboard: true,
           effect: "coverflow",
           coverflowEffect: {
@@ -941,6 +961,13 @@ document.addEventListener("DOMContentLoaded", function() {
         // Vincular los Swipers entre sí
         window.listSwiper.controller.control = window.photoSwiper;
         window.photoSwiper.controller.control = window.listSwiper;
+        
+        // Actualizar el índice de canción actual cuando cambie
+        window.listSwiper.on('slideChange', function() {
+          currentTrackIndex = window.listSwiper.activeIndex;
+          // Guardar estado
+          savePlayerState();
+        });
         
         // Hacer clic en los bullets para navegar
         document.querySelectorAll('.swiper-bullet').forEach((bullet, index) => {
@@ -965,6 +992,49 @@ document.addEventListener("DOMContentLoaded", function() {
           // Crear la instancia del reproductor
           window.trueMediaPlayerInst = new TrueMediaPlayer({
             tmplayerSelector: "[tmplayer-init='true-media-player']",
+            onPlayerReady: function() {
+              // Restaurar el estado del reproductor
+              if (currentTrackIndex > 0) {
+                window.listSwiper.slideTo(currentTrackIndex);
+              }
+              
+              // Si estaba reproduciendo, continuar
+              setTimeout(() => {
+                const audioElements = document.querySelectorAll('audio');
+                if (audioElements.length > 0 && isPlaying) {
+                  const currentAudio = audioElements[currentTrackIndex];
+                  if (currentAudio) {
+                    // Restaurar la posición de reproducción
+                    currentAudio.currentTime = currentTime;
+                    // Reproducir si estaba activo
+                    if (isPlaying) {
+                      currentAudio.play();
+                    }
+                  }
+                }
+              }, 1000);
+            },
+            onPlay: function() {
+              isPlaying = true;
+              savePlayerState();
+            },
+            onPause: function() {
+              isPlaying = false;
+              savePlayerState();
+            },
+            onTimeUpdate: function(e) {
+              // Guardar cada 5 segundos para no sobrecargar localStorage
+              if (Math.floor(e.detail.currentTime) % 5 === 0) {
+                currentTime = e.detail.currentTime;
+                savePlayerState();
+              }
+            },
+            onTrackChange: function(e) {
+              if (e && e.detail && e.detail.trackIndex !== undefined) {
+                currentTrackIndex = e.detail.trackIndex;
+                savePlayerState();
+              }
+            }
           });
           
           // Hacer visible el reproductor después de inicializado
@@ -980,13 +1050,57 @@ document.addEventListener("DOMContentLoaded", function() {
         }
       }
       
+      // Función para guardar el estado del reproductor
+      function savePlayerState() {
+        try {
+          const playerState = {
+            trackIndex: currentTrackIndex,
+            isPlaying: isPlaying,
+            currentTime: currentTime
+          };
+          localStorage.setItem('player_state', JSON.stringify(playerState));
+          console.log("💾 Estado guardado:", playerState);
+        } catch (e) {
+          console.error("❌ Error guardando estado:", e);
+        }
+      }
+      
       // Inicializar TrueMediaPlayer
       initTrueMediaPlayer();
+      
+      // Interceptar los enlaces para mantener el reproductor
+      document.querySelectorAll('a').forEach(link => {
+        // Solo para enlaces internos que no sean # o javascript:void(0)
+        if (link.href && link.href.includes(window.location.hostname) && 
+            !link.href.endsWith('#') && 
+            !link.href.includes('javascript:void')) {
+          
+          link.addEventListener('click', function(e) {
+            // Guardar el estado actual antes de navegar
+            savePlayerState();
+          });
+        }
+      });
     })
     .catch(error => {
       console.error("❌ Error cargando tracks.json:", error);
     });
+    
+  // Manejar la visibilidad del reproductor cuando se cambia de página
+  document.addEventListener('visibilitychange', function() {
+    // Guardar el estado cuando el usuario sale de la página
+    if (document.visibilityState === 'hidden') {
+      // Obtener la posición actual si hay un audio activo
+      const activeAudio = document.querySelector('audio');
+      if (activeAudio) {
+        localStorage.setItem('player_currentTime', activeAudio.currentTime);
+      }
+    }
+  });
 });
 </script>
+
+<!-- Script para reproductor persistente entre páginas -->
+<script src="player.js"></script>
 </body>
 </html>
