@@ -722,14 +722,25 @@ margin: 0rem !important;
 <!-- Estilo adicional para asegurar que el reproductor sea visible -->
 <style>
   .main-media-player {
-    display: block !important;
+    /* Cambiar de display: block !important a display: none inicialmente */
+    display: none !important;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 999;
     background-color: #000;
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    /* Añadir transform inicial para animación desde abajo */
+    transform: translateY(100%);
+    opacity: 0;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.6s ease;
+  }
+  
+  /* Clase para mostrar el reproductor con animación */
+  .main-media-player.show {
+    display: flex !important;
+    transform: translateY(0);
+    opacity: 1;
   }
   
   /* Estilos para los números de las pistas de audio */
@@ -842,12 +853,13 @@ margin: 0rem !important;
 <script>
 // Script para cargar datos de tracks.json y llenar el Swiper
 document.addEventListener("DOMContentLoaded", function() {
-  // Mostrar el reproductor inicialmente (eliminando estilo display:none)
-  const mainMediaPlayer = document.querySelector('.main-media-player');
-  if (mainMediaPlayer) {
-    mainMediaPlayer.style.display = 'block';
-    mainMediaPlayer.style.transform = 'none';
-  }
+  // NO mostrar el reproductor inicialmente - eliminar esta sección
+  // Comentamos esto:
+  // const mainMediaPlayer = document.querySelector('.main-media-player');
+  // if (mainMediaPlayer) {
+  //   mainMediaPlayer.style.display = 'block';
+  //   mainMediaPlayer.style.transform = 'none';
+  // }
 
   // Variables para persistencia entre páginas
   let currentTrackIndex = 0;
@@ -1225,18 +1237,19 @@ document.addEventListener("DOMContentLoaded", function() {
         if (typeof TrueMediaPlayer !== 'undefined') {
           console.log("✅ Inicializando True Media Player");
           
-          // Asegurarnos que el reproductor está visible
-          const mediaPlayer = document.querySelector('.main-media-player');
-          if (mediaPlayer) {
-            mediaPlayer.style.display = 'block';
-            mediaPlayer.style.transform = 'none';
-          }
-          
           // Crear la instancia del reproductor solo si no existe
           if (!window.trueMediaPlayerInst) {
             window.trueMediaPlayerInst = new TrueMediaPlayer({
               tmplayerSelector: "[tmplayer-init='true-media-player']",
               onPlayerReady: function() {
+                console.log("🎵 Reproductor listo - mostrando con animación...");
+                
+                // Mostrar el reproductor con animación después de que esté listo
+                const mediaPlayer = document.querySelector('.main-media-player');
+                if (mediaPlayer) {
+                  mediaPlayer.classList.add('show');
+                }
+                
                 // Restaurar el estado del reproductor
                 if (currentTrackIndex > 0) {
                   window.listSwiper.slideTo(currentTrackIndex);
@@ -1281,14 +1294,6 @@ document.addEventListener("DOMContentLoaded", function() {
               }
             });
           }
-          
-          // Hacer visible el reproductor después de inicializado
-          setTimeout(() => {
-            if (mediaPlayer) {
-              mediaPlayer.style.opacity = '1';
-              mediaPlayer.style.transform = 'translateY(0)';
-            }
-          }, 500);
         } else {
           console.warn("⚠️ TrueMediaPlayer no está disponible. Reintentando en 1 segundo...");
           setTimeout(initTrueMediaPlayer, 1000);
