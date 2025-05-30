@@ -44,6 +44,27 @@
   transform: translate(0px);
 }
 </style>
+  <style>
+.main-media-player.show {
+  display: block !important;
+  -webkit-transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0) !important;
+  -moz-transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0) !important;
+  -ms-transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0) !important;
+  transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0) !important;
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+/* Animación suave para mostrar el reproductor */
+.main-media-player {
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.main-media-player.show {
+  opacity: 1;
+}
+</style>
 </head>
 <body class="body tipo1">
   <div bind="8780a3ac-030b-3a0e-11e3-e217f684e2bc" class="page-styles w-embed">
@@ -957,6 +978,15 @@ document.addEventListener("DOMContentLoaded", function() {
         // Agregar el slide a los contenedores
         listWrapper.appendChild(listSlide);
         photoWrapper.appendChild(photoSlide);
+        
+        // Agregar evento de clic para mostrar el reproductor
+        listSlide.addEventListener('click', function() {
+          console.log("🎵 Usuario hizo clic en la canción, mostrando reproductor...");
+          const mediaPlayer = document.querySelector('.main-media-player');
+          if (mediaPlayer) {
+            mediaPlayer.classList.add('show');
+          }
+        });
       });
       
       console.log("✅ Slides creados y agregados al DOM");
