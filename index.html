@@ -735,22 +735,23 @@ margin: 0rem !important;
   /* Estilos para los números de las pistas de audio */
   .track-number {
     position: absolute;
-    left: -40px;
+    left: -30px;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background-color: rgba(255, 255, 255, 0.2);
     color: white;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     z-index: 10;
     transition: all 0.3s ease;
     border: 1px solid rgba(255, 255, 255, 0.5);
+    cursor: pointer;
   }
   
   .swiper-slide.is-active .track-number {
@@ -766,23 +767,26 @@ margin: 0rem !important;
     padding-left: 15px;
   }
   
-  /* Indicador horizontal en la parte inferior */
+  /* Indicador horizontal debajo de la lista de canciones */
   .horizontal-indicator {
     display: flex;
     justify-content: center;
-    position: fixed;
-    bottom: 100px;
-    left: 0;
-    right: 0;
+    position: relative;
+    margin: 10px auto;
     z-index: 100;
+    width: 100%;
+    max-width: 600px;
   }
   
   .indicator-bullets {
     display: flex;
-    gap: 10px;
-    background-color: rgba(0, 0, 0, 0.6);
-    padding: 8px 16px;
-    border-radius: 20px;
+    justify-content: center;
+    gap: 8px;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 8px 15px;
+    border-radius: 25px;
+    max-width: 240px;
+    margin: 0 auto;
   }
   
   .indicator-bullet {
@@ -799,13 +803,39 @@ margin: 0rem !important;
     transition: all 0.3s ease;
     border: 1px solid rgba(255, 255, 255, 0.5);
     cursor: pointer;
+    margin: 0 3px;
   }
   
   .indicator-bullet.active {
     background-color: transparent;
     color: white;
-    transform: scale(1.2);
-    border: 1px solid white;
+    transform: scale(1.25);
+    border: 2px solid white;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Estilo especial para el número 1 (FREEMAIKI) */
+  .indicator-bullet:first-child, 
+  .track-number:first-of-type {
+    color: red;
+    font-weight: 900;
+  }
+  
+  .indicator-bullet.active:first-child, 
+  .swiper-slide.is-active:first-child .track-number {
+    color: red;
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-50%) scale(1.3);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    border: 2px solid red;
+  }
+  
+  /* Efecto hover para el número 1 */
+  .indicator-bullet:first-child:hover, 
+  .track-number:first-of-type:hover {
+    background-color: rgba(255, 0, 0, 0.3);
+    transform: translateY(-50%) scale(1.3);
+    border: 2px solid red;
   }
 </style>
 
@@ -871,7 +901,7 @@ document.addEventListener("DOMContentLoaded", function() {
         listSlide.innerHTML = `
           <div tmplayer-action="toggle" class="track">
             <!-- Número visible de track directamente en el elemento -->
-            <div class="track-number">${index + 1}</div>
+            <div class="track-number track-number-${index + 1}">${index + 1}</div>
             <div class="thumbnail-wrapper">
               <div class="track-details-wrapper">
                 <p class="slider-list_title">${track.title}</p>
@@ -881,13 +911,13 @@ document.addEventListener("DOMContentLoaded", function() {
               <img src="images/audio-active.svg" height="40" width="20" tmplayer-interaction="monitor-state" alt="" class="mp-audio-bar">
               <div tmplayer-interaction="populate-duration" class="track-time">${track.duration}</div>
             </div>
-            <div tmplayer-element="audio" class="true-media-player-track">
-              <audio src="${track.audioUrl}"></audio>
-              <div tmplayer-meta="audio-url" class="track-url">${track.audioUrl}</div>
-              <div tmplayer-meta="title" class="track-name">${track.title}</div>
-              <div tmplayer-meta="genre" class="track-genres">${track.genre}</div>
-              <img loading="lazy" tmplayer-meta="thumbnail" src="${track.thumbnail}" alt="" class="track-image">
-            </div>
+                      <div tmplayer-element="audio" class="true-media-player-track">
+            <audio src="${track.audioUrl}"></audio>
+            <div tmplayer-meta="audio-url" class="track-url">${track.audioUrl}</div>
+            <div tmplayer-meta="title" class="track-name">${track.title}</div>
+            <div tmplayer-meta="genre" class="track-genres">${track.genre}</div>
+            <img loading="lazy" tmplayer-meta="thumbnail" src="images/FREEMAIKOL-FINAL.gif" alt="" class="track-image">
+          </div>
           </div>
         `;
         
@@ -897,7 +927,7 @@ document.addEventListener("DOMContentLoaded", function() {
         photoSlide.setAttribute('role', 'listitem');
         photoSlide.innerHTML = `
           <div class="slider-photo_card">
-            <img alt="${track.title}" src="${track.thumbnail}" class="slider-photo_img">
+                          <img alt="${track.title}" src="images/FREEMAIKOL-FINAL.gif" class="slider-photo_img">
             <a href="#" class="slider-photo_link w-inline-block">
               <p class="slider-photo_link-text">${track.title}</p>
               <div class="slider-photo_link-icon w-embed">
@@ -973,10 +1003,25 @@ document.addEventListener("DOMContentLoaded", function() {
                   num.style.backgroundColor = 'transparent';
                   num.style.transform = 'translateY(-50%) scale(1.2)';
                   num.style.border = '1px solid white';
+                  
+                  // Estilo especial para FREEMAIKI (índice 0)
+                  if (i === 0) {
+                    num.style.color = 'red';
+                    num.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    num.style.transform = 'translateY(-50%) scale(1.3)';
+                    num.style.boxShadow = '0 0 10px rgba(255, 0, 0, 0.5)';
+                    num.style.border = '2px solid red';
+                  }
                 } else {
                   num.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
                   num.style.transform = 'translateY(-50%)';
                   num.style.border = '1px solid rgba(255, 255, 255, 0.5)';
+                  
+                  // Estilo general para FREEMAIKI incluso cuando no está activo
+                  if (i === 0) {
+                    num.style.color = 'red';
+                    num.style.fontWeight = '900';
+                  }
                 }
               });
               
@@ -1020,18 +1065,55 @@ document.addEventListener("DOMContentLoaded", function() {
           });
         });
         
-        // Aplicar estilo al número activo inicial
-        const activeIndex = window.listSwiper.activeIndex;
-        document.querySelectorAll('.track-number').forEach((num, i) => {
-          if (i === activeIndex) {
+              // Aplicar estilo al número activo inicial
+      const activeIndex = window.listSwiper.activeIndex;
+      document.querySelectorAll('.track-number').forEach((num, i) => {
+        // Estilo especial para FREEMAIKI (primera canción)
+        if (i === 0) {
+          num.style.color = 'red';
+          num.style.fontWeight = '900';
+          num.style.border = '1px solid red';
+          
+          // Añadir eventos hover para la primera canción
+          num.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+            this.style.transform = 'translateY(-50%) scale(1.3)';
+            this.style.border = '2px solid red';
+          });
+          
+          num.addEventListener('mouseleave', function() {
+            if (window.listSwiper && i !== window.listSwiper.activeIndex) {
+              this.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+              this.style.transform = 'translateY(-50%)';
+              this.style.border = '1px solid red';
+            } else {
+              this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+              this.style.transform = 'translateY(-50%) scale(1.3)';
+              this.style.boxShadow = '0 0 10px rgba(255, 0, 0, 0.5)';
+              this.style.border = '2px solid red';
+            }
+          });
+        }
+        
+        // Aplicar estilo activo
+        if (i === activeIndex) {
+          if (i === 0) {
+            // Estilo especial cuando FREEMAIKI es la activa
+            num.style.color = 'red';
+            num.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            num.style.transform = 'translateY(-50%) scale(1.3)';
+            num.style.boxShadow = '0 0 10px rgba(255, 0, 0, 0.5)';
+            num.style.border = '2px solid red';
+          } else {
             num.style.backgroundColor = 'transparent';
             num.style.transform = 'translateY(-50%) scale(1.2)';
             num.style.border = '1px solid white';
           }
-        });
+        }
+      });
       }
       
-      // Función para crear indicador horizontal en la parte inferior
+            // Función para crear indicador horizontal en la parte inferior
       function createHorizontalIndicator(totalTracks, activeIndex) {
         // Crear contenedor principal
         const indicatorContainer = document.createElement('div');
@@ -1041,30 +1123,68 @@ document.addEventListener("DOMContentLoaded", function() {
         const bulletsContainer = document.createElement('div');
         bulletsContainer.className = 'indicator-bullets';
         
-        // Crear bullets (solo necesitamos mostrar los primeros 5 como máximo)
+        // Crear bullets (mostrar solo los primeros 5)
         const maxBullets = Math.min(5, totalTracks);
         for (let i = 0; i < maxBullets; i++) {
-          const bullet = document.createElement('div');
-          bullet.className = i === activeIndex ? 'indicator-bullet active' : 'indicator-bullet';
-          bullet.textContent = i + 1;
-          bullet.dataset.index = i;
+        const bullet = document.createElement('div');
+        bullet.className = i === activeIndex ? 'indicator-bullet active' : 'indicator-bullet';
+        bullet.textContent = i + 1;
+        bullet.dataset.index = i;
+        
+        // Estilo especial para FREEMAIKI (índice 0)
+        if (i === 0) {
+          bullet.style.color = 'red';
+          bullet.style.fontWeight = '900';
           
-          // Agregar evento de clic
-          bullet.addEventListener('click', function() {
-            const index = parseInt(this.dataset.index);
-            if (window.listSwiper) {
-              window.listSwiper.slideTo(index);
-            }
+          // Si además es el activo, aplicar estilo completo
+          if (i === activeIndex) {
+            bullet.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            bullet.style.transform = 'scale(1.3)';
+            bullet.style.boxShadow = '0 0 10px rgba(255, 0, 0, 0.5)';
+            bullet.style.border = '2px solid red';
+          } else {
+            bullet.style.border = '1px solid rgba(255, 0, 0, 0.5)';
+          }
+        }
+        
+        // Agregar evento de clic
+        bullet.addEventListener('click', function() {
+          const index = parseInt(this.dataset.index);
+          if (window.listSwiper) {
+            window.listSwiper.slideTo(index);
+          }
+        });
+        
+        // Efecto hover para FREEMAIKI
+        if (i === 0) {
+          bullet.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+            this.style.transform = 'scale(1.3)';
+            this.style.border = '2px solid red';
           });
           
-          bulletsContainer.appendChild(bullet);
+          bullet.addEventListener('mouseleave', function() {
+            if (parseInt(this.dataset.index) !== window.listSwiper.activeIndex) {
+              this.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+              this.style.transform = '';
+              this.style.border = '1px solid rgba(255, 0, 0, 0.5)';
+            }
+          });
+        }
+        
+        bulletsContainer.appendChild(bullet);
         }
         
         // Agregar bullets al contenedor principal
         indicatorContainer.appendChild(bulletsContainer);
         
-        // Agregar el indicador al cuerpo del documento
-        document.body.appendChild(indicatorContainer);
+                  // Agregar el indicador debajo de la lista de canciones
+        const trackList = document.querySelector('.swiper.is-slider-list');
+        if (trackList) {
+          trackList.after(indicatorContainer);
+        } else {
+          console.error("No se encontró la lista de canciones para agregar el indicador");
+        }
       }
       
       // Función para actualizar el indicador horizontal
@@ -1074,8 +1194,28 @@ document.addEventListener("DOMContentLoaded", function() {
           const index = parseInt(bullet.dataset.index);
           if (index === activeIndex) {
             bullet.classList.add('active');
+            
+            // Estilo especial para FREEMAIKI (índice 0)
+            if (index === 0) {
+              bullet.style.color = 'red';
+              bullet.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+              bullet.style.transform = 'scale(1.3)';
+              bullet.style.boxShadow = '0 0 10px rgba(255, 0, 0, 0.5)';
+              bullet.style.border = '2px solid red';
+            }
           } else {
             bullet.classList.remove('active');
+            bullet.style.transform = '';
+            bullet.style.boxShadow = '';
+            
+            // Estilo base para FREEMAIKI incluso cuando no está activo
+            if (index === 0) {
+              bullet.style.color = 'red';
+              bullet.style.fontWeight = '900';
+              bullet.style.border = '1px solid rgba(255, 0, 0, 0.5)';
+            } else {
+              bullet.style.border = '1px solid rgba(255, 255, 255, 0.5)';
+            }
           }
         });
       }
